@@ -566,13 +566,6 @@ cursor:pointer;
     margin-bottom:40px;
 }
 
-.gallery-container{
-    display:grid;
-    grid-template-columns:repeat(3, 300px);
-    gap:25px;
-    justify-content:center;
-}
-
 .gallery-container img{
     width:300px;
     height:250px;
