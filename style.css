@@ -629,3 +629,37 @@ cursor:pointer;
     }
 
 }
+
+#gallery {
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.gallery-container {
+    display: grid;
+    grid-template-columns: repeat(3, 250px);
+    gap: 20px;
+    justify-content: center;
+}
+
+.gallery-container img {
+    width: 250px;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 15px;
+}
+
+
+@media(max-width:768px){
+
+    .gallery-container{
+        grid-template-columns: 1fr;
+    }
+
+    .gallery-container img{
+        width:90%;
+        height:200px;
+        margin:auto;
+    }
+
+}
