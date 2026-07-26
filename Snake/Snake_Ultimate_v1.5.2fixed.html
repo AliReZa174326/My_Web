@@ -1,0 +1,163 @@
+
+<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><meta charset="utf-8"><title>Snake Ultimate v1.1</title><style>
+
+body{margin:0;background:#111;color:#fff;font-family:Arial;text-align:center}canvas{background:#000;border:2px solid #fff;margin-top:10px}#menu,#over{position:fixed;inset:0;background:rgba(0,0,0,.8);display:flex;flex-direction:column;justify-content:center;align-items:center}button{padding:10px 20px}
+
+</style></head><body>
+
+    <button id="settingsBtn" style="position:fixed;top:10px;right:10px">⚙️</button>
+
+    <div id="settings" style="display:none;position:fixed;top:50px;right:10px;background:#222;color:#fff;padding:10px;border:1px solid #888">
+
+        <b>Settings</b><br>
+
+        <label><input type="radio" name="mode" value="auto" checked> Auto Detect</label><br>
+
+        <label><input type="radio" name="mode" value="pc"> Computer</label><br>
+
+<label><input type="radio" name="mode" value="mobile"> Mobile</label><br>
+
+<hr><b>Game Speed</b><br>
+
+<label><input type="radio" name="speed" value="140"> Slow</label><br>
+
+<label><input type="radio" name="speed" value="100" checked> Normal</label><br>
+
+<label><input type="radio" name="speed" value="70"> Fast</label><br>
+
+<button id="saveMode">Save</button>
+
+</div>
+
+<div>Score:<span id=sc>0</span> High:<span id=hi></span> <span style="color:gold">⭐ هر ۵ سیب، میوه طلایی</span></div><canvas id=cv width=400 height=400></canvas><div id=menu><h1>Snake Ultimate</h1><button onclick="start()">Start</button></div><div id=over style="display:none"><h1>Game Over</h1><button onclick="start()">Restart</button></div><script>
+
+const A=new (window.AudioContext||window.webkitAudioContext)();
+
+function beep(f,d){const o=A.createOscillator(),g=A.createGain();o.frequency.value=f;o.connect(g);g.connect(A.destination);o.start();g.gain.setValueAtTime(.08,A.currentTime);g.gain.exponentialRampToValueAtTime(.0001,A.currentTime+d);o.stop(A.currentTime+d);}
+
+const c=cv,x=c.getContext('2d'),G=20,N=20;if(window.innerWidth<500){let z=Math.floor(window.innerWidth*0.9);c.style.width=z+'px';c.style.height=z+'px';}let hs=+localStorage.hs||0;hi.textContent=hs;
+
+let snake,dx,dy,food,gold=null,redCount=0,score,t,paused=false;
+
+document.addEventListener('keydown',e=>{
+
+    if(e.key=='p'||e.key=='P'){paused=!paused;beep(paused?300:600,.08);}
+
+    if(e.key=='r'||e.key=='R'){start();beep(700,.08);}
+
+    if((e.key=='ArrowUp'||e.key=='w')&&dy==0){dx=0;dy=-1}
+
+    if((e.key=='ArrowDown'||e.key=='s')&&dy==0){dx=0;dy=1}
+
+    if((e.key=='ArrowLeft'||e.key=='a')&&dx==0){dx=-1;dy=0}
+
+    if((e.key=='ArrowRight'||e.key=='d')&&dx==0){dx=1;dy=0}
+
+});
+
+function randPos(){let p;do{p={x:Math.floor(Math.random()*N),y:Math.floor(Math.random()*N)}}while(snake.some(q=>q.x==p.x&&q.y==p.y));return p;}
+
+function spawn(){food=randPos();}
+
+function spawnGold(){gold=randPos();setTimeout(()=>{gold=null;},8000);}
+
+function start(){menu.style.display='none';over.style.display='none';clearInterval(t);redCount=0;gold=null;paused=false;snake=[{x:10,y:10}];dx=1;dy=0;score=0;sc.textContent=0;spawn();beep(800,.1);t=setInterval(step,speed)}
+
+function step(){if(paused){draw();return;}let h={x:snake[0].x+dx,y:snake[0].y+dy};if(h.x<0||h.y<0||h.x>=N||h.y>=N||snake.some(p=>p.x==h.x&&p.y==h.y)){clearInterval(t);hs=Math.max(hs,score);localStorage.hs=hs;hi.textContent=hs;beep(120,.5);over.style.display='flex';return;}snake.unshift(h);if(h.x==food.x&&h.y==food.y){score++;redCount++;sc.textContent=score;beep(900,.05);spawn();if(redCount%5===0&&!gold)spawnGold();}else snake.pop();if(gold&&h.x==gold.x&&h.y==gold.y){score+=5;sc.textContent=score;gold=null;beep(1200,.12);}draw();}
+
+function draw(){x.fillStyle="#000";x.fillRect(0,0,400,400);x.fillStyle="red";x.fillRect(food.x*G,food.y*G,G,G);if(gold){x.beginPath();x.shadowColor="gold";x.shadowBlur=18;x.fillStyle="yellow";x.arc(gold.x*G+10,gold.y*G+10,8,0,7);x.fill();x.shadowBlur=0;}snake.forEach((p,i)=>{x.fillStyle=i?"#0f0":"#6f6";x.fillRect(p.x*G+1,p.y*G+1,G-2,G-2)});if(paused){x.fillStyle="rgba(255,255,255,.8)";x.font="28px Arial";x.fillText("PAUSED",140,200);}}
+
+</script><div id="ctrl" style="position:fixed;bottom:10px;left:50%;transform:translateX(-50%);display:grid;grid-template-columns:60px 60px 60px;gap:6px">
+
+    <div></div><button id="u">⬆️</button><div></div>
+
+    <button id="l">⬅️</button><button id="d">⬇️</button><button id="r">➡️</button>
+
+</div>
+
+<script>
+
+function mv(k){document.dispatchEvent(new KeyboardEvent('keydown',{key:k}));}
+
+u.onclick=()=>mv('ArrowUp');d.onclick=()=>mv('ArrowDown');
+
+l.onclick=()=>mv('ArrowLeft');r.onclick=()=>mv('ArrowRight');
+
+</script>
+
+<script>
+
+const panel=document.getElementById('settings');
+
+settingsBtn.onclick=()=>{
+
+    const open=panel.style.display==='none';
+
+    panel.style.display=open?'block':'none';
+
+    paused=open;
+
+};
+
+function applyMode(mode){
+
+    let mobile=/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent);
+
+    if(mode==='auto') mode=mobile?'mobile':'pc';
+
+    localStorage.deviceMode=mode;
+
+    document.getElementById('ctrl').style.display=(mode==='mobile')?'grid':'none';
+
+}
+
+document.querySelectorAll('input[name=mode]').forEach(r=>{
+
+    if((localStorage.deviceMode||'auto')===r.value) r.checked=true;
+
+});
+
+applyMode(localStorage.deviceMode||'auto');
+
+saveMode.onclick=()=>{
+
+    const m=document.querySelector('input[name=mode]:checked').value;
+
+    applyMode(m);
+
+    panel.style.display='none';
+
+};
+
+
+let speed=+(localStorage.gameSpeed||100);
+
+document.querySelectorAll('input[name=speed]').forEach(r=>{if(+r.value===speed)r.checked=true;});
+
+const _oldStart=start;
+
+start=function(){clearInterval(t);_oldStart();clearInterval(t);t=setInterval(step,speed);}
+
+const _oldSave=saveMode.onclick;
+
+saveMode.onclick=()=>{
+
+    const m=document.querySelector('input[name=mode]:checked').value;
+
+    applyMode(m);
+
+    speed=+document.querySelector('input[name=speed]:checked').value;
+
+    localStorage.gameSpeed=speed;
+
+    paused=false;
+
+    panel.style.display='none';
+
+    if(menu.style.display==='none'&&over.style.display==='none'){clearInterval(t);t=setInterval(step,speed);}
+
+};
+
+</script>
+
+</body></html>
