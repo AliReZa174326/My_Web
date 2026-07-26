@@ -364,10 +364,7 @@ box-shadow:0 18px 30px rgba(0,120,255,.2);
     nav.active{
         display:flex;
     }
-    
-    }
-
-    
+   
     .hero{
     
         height:auto;
@@ -459,7 +456,7 @@ box-shadow:0 18px 30px rgba(0,120,255,.2);
 }
 
 .menu-btn{
-    display:none;
+    display:block;
     font-size:32px;
      cursor:pointer;
 }
