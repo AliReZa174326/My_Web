@@ -67,7 +67,7 @@ function step(){if(paused){draw();return;}let h={x:snake[0].x+dx,y:snake[0].y+dy
 
 function draw(){x.fillStyle="#000";x.fillRect(0,0,400,400);x.fillStyle="red";x.fillRect(food.x*G,food.y*G,G,G);if(gold){x.beginPath();x.shadowColor="gold";x.shadowBlur=18;x.fillStyle="yellow";x.arc(gold.x*G+10,gold.y*G+10,8,0,7);x.fill();x.shadowBlur=0;}snake.forEach((p,i)=>{x.fillStyle=i?"#0f0":"#6f6";x.fillRect(p.x*G+1,p.y*G+1,G-2,G-2)});if(paused){x.fillStyle="rgba(255,255,255,.8)";x.font="28px Arial";x.fillText("PAUSED",140,200);}}
 
-</script><div id="ctrl" style="position:fixed;bottom:10px;left:50%;transform:translateX(-50%);display:grid;grid-template-columns:60px 60px 60px;gap:6px">
+</script><div id="ctrl" style="position:fixed;bottom:50px;left:50%;transform:translateX(-50%);display:grid;grid-template-columns:150px 150px 150px;gap:10px">
 
     <div></div><button id="u">⬆️</button><div></div>
 
