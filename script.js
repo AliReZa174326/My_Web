@@ -1,4 +1,4 @@
-const text = "Welcome To My Website";
+const text = "به وبسایت من خوش آمدید";
 
 let i = 0;
 
