@@ -581,3 +581,14 @@ cursor:pointer;
     transform:scale(1.05);
 
 }
+
+.card button{
+    max-width:100%;
+    width:100%;
+    font-size:16px;
+    padding:12px 15px;
+}
+
+.card a{
+    display:block;
+}
