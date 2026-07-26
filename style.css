@@ -484,7 +484,10 @@ nav{
     text-align:center;
 }
 
-
+.gallery-item{
+    overflow:hidden;
+}
+ 
 #gallery h2{
     font-size:35px;
     margin-bottom:40px;
@@ -512,6 +515,9 @@ nav{
 
 }
 
+ .gallery-item{
+    overflow:hidden;
+}
 
 .gallery-container img:hover{
 
