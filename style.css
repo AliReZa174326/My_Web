@@ -641,13 +641,6 @@ cursor:pointer;
     justify-content: center;
 }
 
-.gallery-container img {
-    width: 250px;
-    height: 180px;
-    object-fit: cover;
-    border-radius: 15px;
-}
-
 
 @media(max-width:768px){
 
