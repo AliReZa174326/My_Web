@@ -70,3 +70,11 @@ fireBtn.addEventListener("touchstart",()=>{
 shoot();
 
 });
+
+document.querySelectorAll("#mobile-controls button").forEach(button => {
+
+    button.addEventListener("contextmenu", function(e) {
+        e.preventDefault();
+    });
+
+});
