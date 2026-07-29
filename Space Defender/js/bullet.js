@@ -1,5 +1,5 @@
 // ===== Bullets =====
-const laserSound = new Audio("Sounds/Voicy_allah akbar.mp3");
+const laserSound = new Audio("Sounds/Voicyallahakbar.mp3");
 
 let bullets = [];
 
