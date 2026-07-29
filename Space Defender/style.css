@@ -251,3 +251,15 @@ display:block;
 margin:auto;
 
 }
+
+#mobile-controls,
+#mobile-controls button {
+    -webkit-user-select: none;
+    user-select: none;
+
+    -webkit-touch-callout: none;
+}
+
+#mobile-controls button {
+    touch-action: manipulation;
+}
