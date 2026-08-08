@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>2D Blaster</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#080b12;font-family:system-ui,-apple-system,Segoe UI,Tahoma,sans-serif;color:#fff;touch-action:none}
+canvas{display:block;width:100vw;height:100vh;background:linear-gradient(#111827,#080b12)}
+#hud{position:fixed;top:max(10px,env(safe-area-inset-top));left:0;right:0;display:flex;justify-content:space-between;padding:10px 14px;pointer-events:none;font-weight:800;text-shadow:0 2px 4px #000}
+.badge{background:#111827cc;border:1px solid #ffffff22;border-radius:14px;padding:7px 11px}
+#health{color:#7CFF8B} #score{color:#7dd3fc}
+#gameover{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:#0009;text-align:center}
+.panel{background:#111827f5;border:1px solid #ffffff20;border-radius:24px;padding:28px;min-width:260px;box-shadow:0 20px 70px #000}
+button{border:0;border-radius:16px;padding:13px 24px;font-size:18px;font-weight:800;background:#38bdf8;color:#06111a}
+#hint{position:fixed;bottom:10px;left:50%;transform:translateX(-50%);opacity:.6;font-size:12px;pointer-events:none;white-space:nowrap}
+@media (min-width:800px){
+  #stickBase{display:none}
+  #fire{width:82px;height:82px;right:24px;bottom:24px}
+  #hint{bottom:12px}
+}
+.weaponRow{display:flex;gap:8px;margin:10px 0;flex-wrap:wrap}
+.weaponBtn{flex:1;min-width:120px;background:#334155;color:#fff;border:1px solid #ffffff15}
+.weaponBtn.selected{background:#0ea5e9;color:#031018}
+.level{font-size:11px;opacity:.65}
+#shopBtn{position:fixed;top:max(62px,calc(env(safe-area-inset-top) + 62px));right:14px;z-index:5;background:#f59e0bcc;color:#fff;border:1px solid #ffffff22;border-radius:13px;padding:8px 12px;font-weight:900;font-size:14px}
+#shop{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:#000b;z-index:10;padding:18px}
+.shopPanel{width:min(92vw,430px);max-height:88vh;overflow:auto;background:#111827;border:1px solid #ffffff22;border-radius:24px;padding:20px;box-shadow:0 20px 80px #000}
+.shopHeader{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.coins{color:#fbbf24;font-weight:900}
+.item{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#ffffff0b;border:1px solid #ffffff12;border-radius:16px;padding:12px;margin:10px 0}
+.item h3{margin:0 0 4px}.item p{margin:0;opacity:.65;font-size:12px}
+.buy{padding:9px 13px;font-size:14px;background:#22c55e;color:#04130a;white-space:nowrap}
+.close{background:#334155;color:#fff;padding:9px 13px;font-size:14px}
+#controls{position:fixed;inset:0;pointer-events:none}
+#stickBase{position:absolute;left:22px;bottom:25px;width:125px;height:125px;border-radius:50%;background:#ffffff12;border:2px solid #ffffff22;pointer-events:auto}
+#stick{position:absolute;left:31px;top:31px;width:59px;height:59px;border-radius:50%;background:#ffffff2c;border:2px solid #ffffff40}
+#fire{position:absolute;right:24px;bottom:28px;width:105px;height:105px;border-radius:50%;background:#ef444455;border:2px solid #ffffff35;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:900;pointer-events:auto;user-select:none}
+#fire:active{transform:scale(.94);background:#ef444477}
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<div id="hud">
+  <div class="badge">❤️ <span id="health">100</span></div>
+  <div class="badge">امتیاز: <span id="score">0</span> | موج: <span id="wave">1</span></div>
+</div>
+<button id="shopBtn">🛒 فروشگاه</button>
+<div id="hint">موبایل: جوی‌استیک + شلیک • کامپیوتر: WASD + کلیک چپ • سلاح‌ها: 1 تا 4</div>
+<div id="shop">
+  <div class="shopPanel">
+    <div class="shopHeader">
+      <h2 style="margin:0">🛒 فروشگاه</h2>
+      <div class="coins">🪙 <span id="coins">0</span></div>
+    </div>
+    <p style="opacity:.65">سکه‌ها را با شکست دادن دشمن‌ها به دست بیاور.</p>
+    <h3>🔫 انتخاب سلاح</h3>
+    <div class="weaponRow">
+      <button class="weaponBtn selected" data-weapon="pistol">🔫 تپانچه<br><span class="level" id="lvl-pistol">Lv.1</span></button>
+      <button class="weaponBtn" data-weapon="smg">🔫 SMG<br><span class="level" id="lvl-smg">🔒</span></button>
+      <button class="weaponBtn" data-weapon="shotgun">💥 شاتگان<br><span class="level" id="lvl-shotgun">🔒</span></button>
+      <button class="weaponBtn" data-weapon="rifle">🎯 رایفل<br><span class="level" id="lvl-rifle">🔒</span></button>
+    </div>
+    <div class="item">
+      <div><h3>⬆️ ارتقای سلاح فعلی</h3><p>آسیب و کارایی سلاح انتخاب‌شده بهتر می‌شود.</p></div>
+      <button class="buy" id="upgradeWeapon">🪙 25</button>
+    </div>
+    <div class="item">
+      <div><h3>🔫 سرعت شلیک</h3><p>فاصله بین تیرها کمتر می‌شود.</p></div>
+      <button class="buy" data-item="fire">🪙 20</button>
+    </div>
+    <div class="item">
+      <div><h3>💥 قدرت گلوله</h3><p>هر گلوله آسیب بیشتری می‌زند.</p></div>
+      <button class="buy" data-item="damage">🪙 30</button>
+    </div>
+    <div class="item">
+      <div><h3>❤️ زره</h3><p>حداکثر سلامتی را افزایش می‌دهد.</p></div>
+      <button class="buy" data-item="armor">🪙 40</button>
+    </div>
+    <div class="item">
+      <div><h3>⚡ سرعت حرکت</h3><p>حرکت بازیکن سریع‌تر می‌شود.</p></div>
+      <button class="buy" data-item="speed">🪙 35</button>
+    </div>
+    <button id="closeShop" class="close">بستن</button>
+  </div>
+</div>
+<div id="controls">
+  <div id="stickBase"><div id="stick"></div></div>
+  <div id="fire">🔥 شلیک</div>
+</div>
+<div id="gameover">
+  <div class="panel">
+    <h1>💀 باختی!</h1>
+    <p>امتیاز: <b id="finalScore">0</b></p>
+    <button id="restart">دوباره بازی</button>
+  </div>
+</div>
+<script>
+const c=document.getElementById('game'),ctx=c.getContext('2d');
+let W,H,dpr;
+function resize(){dpr=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;c.width=W*dpr;c.height=H*dpr;c.style.width=W+'px';c.style.height=H+'px';ctx.setTransform(dpr,0,0,dpr,0,0)}
+addEventListener('resize',resize);resize();
+
+const player={x:0,y:0,r:18,speed:260,hp:100,angle:0};
+let bullets=[], enemies=[], particles=[], score=0,wave=1,dead=false,spawnTimer=0,last=performance.now();
+let coins=0, fireRate=0.14, bulletDamage=1, maxHp=100;
+let weapon='pistol';
+const weapons={
+  pistol:{unlocked:true,level:1,damage:1,rate:.14,shots:1,spread:0,speed:650},
+  smg:{unlocked:false,level:1,damage:1,rate:.075,shots:1,spread:.06,speed:700},
+  shotgun:{unlocked:false,level:1,damage:1.5,rate:.48,shots:6,spread:.32,speed:560},
+  rifle:{unlocked:false,level:1,damage:3,rate:.28,shots:1,spread:.015,speed:900}
+};
+let joy={x:0,y:0},fire=false,aim={x:1,y:0};
+
+function reset(){
+ player.x=W/2;player.y=H/2;player.hp=maxHp;score=0;wave=1;dead=false;
+ bullets=[];enemies=[];particles=[];spawnTimer=0;
+ document.getElementById('gameover').style.display='none'; updateHud();
+}
+function updateHud(){
+ document.getElementById('health').textContent=Math.max(0,Math.round(player.hp));
+ document.getElementById('score').textContent=score;
+ document.getElementById('wave').textContent=wave;
+ document.getElementById('coins').textContent=coins;
+}
+function spawnEnemy(){
+ const side=Math.floor(Math.random()*4), pad=35;
+ let x,y;
+ if(side===0){x=-pad;y=Math.random()*H}
+ if(side===1){x=W+pad;y=Math.random()*H}
+ if(side===2){x=Math.random()*W;y=-pad}
+ if(side===3){x=Math.random()*W;y=H+pad}
+ const elite=Math.random()<Math.min(.08+wave*.015,.25);
+ enemies.push({x,y,r:elite?23:17,hp:elite?3:1,speed:(elite?55:75)+wave*5,elite});
+}
+function shoot(){
+ if(dead)return;
+ const w=weapons[weapon];
+ const baseLen=Math.hypot(aim.x,aim.y)||1;
+ const baseA=Math.atan2(aim.y,aim.x);
+ for(let k=0;k<w.shots;k++){
+   const a=baseA+(Math.random()-.5)*w.spread;
+   const dx=Math.cos(a),dy=Math.sin(a);
+   bullets.push({x:player.x+dx*20,y:player.y+dy*20,vx:dx*w.speed,vy:dy*w.speed,r:5,life:1.2,damage:w.damage+w.level-1});
+ }
+ for(let i=0;i<4;i++)particles.push({x:player.x+aim.x/baseLen*20,y:player.y+aim.y/baseLen*20,vx:-aim.x/baseLen*(50+Math.random()*80)+(Math.random()-.5)*60,vy:-aim.y/baseLen*(50+Math.random()*80)+(Math.random()-.5)*60,life:.2,r:2});
+}
+let fireCooldown=0;
+function update(dt){
+ if(dead)return;
+ player.x+=joy.x*player.speed*dt; player.y+=joy.y*player.speed*dt;
+ player.x=Math.max(player.r,Math.min(W-player.r,player.x));player.y=Math.max(player.r,Math.min(H-player.r,player.y));
+ if(fireCooldown>0)fireCooldown-=dt;
+ if(fire&&fireCooldown<=0){shoot();fireCooldown=weapons[weapon].rate;fireCooldown=Math.max(.045,fireCooldown-(weapons[weapon].level-1)*.008)}
+ spawnTimer-=dt;
+ if(spawnTimer<=0){spawnEnemy();spawnTimer=Math.max(.25,1.05-wave*.06)}
+ wave=1+Math.floor(score/12);
+
+ bullets.forEach(b=>{b.x+=b.vx*dt;b.y+=b.vy*dt;b.life-=dt});
+ bullets=bullets.filter(b=>b.life>0&&b.x>-30&&b.x<W+30&&b.y>-30&&b.y<H+30);
+ for(const e of enemies){
+   const dx=player.x-e.x,dy=player.y-e.y,len=Math.hypot(dx,dy)||1;
+   e.x+=dx/len*e.speed*dt;e.y+=dy/len*e.speed*dt;
+   if(len<e.r+player.r){
+     player.hp-= (e.elite?24:15)*dt;
+     if(Math.random()<.12)burst(player.x,player.y,2);
+   }
+ }
+ for(let i=enemies.length-1;i>=0;i--){
+   const e=enemies[i];
+   for(let j=bullets.length-1;j>=0;j--){
+     const b=bullets[j],dx=b.x-e.x,dy=b.y-e.y;
+     if(dx*dx+dy*dy<(e.r+b.r)**2){
+       e.hp-=b.damage;bullets.splice(j,1);burst(e.x,e.y,e.elite?8:5);
+       if(e.hp<=0){score+=e.elite?5:1;coins+=e.elite?8:2;enemies.splice(i,1)}
+       break;
+     }
+   }
+ }
+ particles.forEach(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;p.r*=.98});
+ particles=particles.filter(p=>p.life>0);
+ if(player.hp<=0){dead=true;document.getElementById('finalScore').textContent=score;document.getElementById('gameover').style.display='flex'}
+ updateHud();
+}
+function burst(x,y,n){
+ for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,s=40+Math.random()*180;particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:.35+Math.random()*.35,r:2+Math.random()*3})}
+}
+function draw(){
+ ctx.clearRect(0,0,W,H);
+ // grid
+ ctx.strokeStyle='#ffffff08';ctx.lineWidth=1;
+ const size=45;
+ for(let x=0;x<W;x+=size){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke()}
+ for(let y=0;y<H;y+=size){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}
+ // particles
+ for(const p of particles){ctx.globalAlpha=Math.max(0,p.life*2);ctx.fillStyle='#fbbf24';ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill()}ctx.globalAlpha=1;
+ // enemies
+ for(const e of enemies){
+   ctx.save();ctx.translate(e.x,e.y);
+   ctx.fillStyle=e.elite?'#a855f7':'#ef4444';ctx.beginPath();ctx.arc(0,0,e.r,0,Math.PI*2);ctx.fill();
+   ctx.fillStyle='#160b16';ctx.beginPath();ctx.arc(5,-4,3,0,Math.PI*2);ctx.arc(5,5,3,0,Math.PI*2);ctx.fill();
+   ctx.restore();
+ }
+ // bullets
+ ctx.fillStyle='#fde047';for(const b of bullets){ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,Math.PI*2);ctx.fill()}
+ // player
+ const ang=Math.atan2(aim.y,aim.x);
+ ctx.save();ctx.translate(player.x,player.y);ctx.rotate(ang);
+ ctx.fillStyle='#38bdf8';ctx.beginPath();ctx.moveTo(24,0);ctx.lineTo(-15,-14);ctx.lineTo(-9,0);ctx.lineTo(-15,14);ctx.closePath();ctx.fill();
+ ctx.fillStyle='#dbeafe';ctx.beginPath();ctx.arc(0,0,7,0,Math.PI*2);ctx.fill();
+ ctx.restore();
+ // hp bar
+ ctx.fillStyle='#0008';ctx.fillRect(player.x-28,player.y-33,56,6);
+ ctx.fillStyle='#22c55e';ctx.fillRect(player.x-28,player.y-33,56*Math.max(0,player.hp/maxHp),6);
+}
+function loop(t){const dt=Math.min((t-last)/1000,.033);last=t;update(dt);draw();requestAnimationFrame(loop)}
+reset();refreshWeapons();requestAnimationFrame(loop);
+
+// Joystick
+const base=document.getElementById('stickBase'),knob=document.getElementById('stick');
+let joyId=null;
+function setJoy(e){
+ const r=base.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;
+ let dx=e.clientX-cx,dy=e.clientY-cy,max=43,len=Math.hypot(dx,dy)||1;
+ if(len>max){dx=dx/len*max;dy=dy/len*max}
+ joy.x=dx/max;joy.y=dy/max;
+ knob.style.transform=`translate(${dx}px,${dy}px)`;
+ aim.x=joy.x||aim.x;aim.y=joy.y||aim.y;
+}
+base.addEventListener('pointerdown',e=>{joyId=e.pointerId;base.setPointerCapture(joyId);setJoy(e)});
+base.addEventListener('pointermove',e=>{if(e.pointerId===joyId)setJoy(e)});
+function endJoy(e){if(e.pointerId===joyId){joyId=null;joy.x=joy.y=0;knob.style.transform='translate(0,0)'}}
+base.addEventListener('pointerup',endJoy);base.addEventListener('pointercancel',endJoy);
+
+// Fire button
+const fireBtn=document.getElementById('fire');
+fireBtn.addEventListener('pointerdown',e=>{fire=true;fireBtn.setPointerCapture(e.pointerId);shoot()});
+['pointerup','pointercancel','pointerleave'].forEach(ev=>fireBtn.addEventListener(ev,()=>fire=false));
+
+// Mouse/keyboard for PC too
+addEventListener('keydown',e=>{
+ if(e.key==='w'||e.key==='ArrowUp')joy.y=-1;
+ if(e.key==='s'||e.key==='ArrowDown')joy.y=1;
+ if(e.key==='a'||e.key==='ArrowLeft')joy.x=-1;
+ if(e.key==='d'||e.key==='ArrowRight')joy.x=1;
+ if(e.code==='Space')fire=true;
+ if(e.key==='1')weapon='pistol';
+ if(e.key==='2'&&weapons.smg.unlocked)weapon='smg';
+ if(e.key==='3'&&weapons.shotgun.unlocked)weapon='shotgun';
+ if(e.key==='4'&&weapons.rifle.unlocked)weapon='rifle';
+ refreshWeapons();
+});
+addEventListener('keyup',e=>{
+ if(['w','s','ArrowUp','ArrowDown'].includes(e.key))joy.y=0;
+ if(['a','d','ArrowLeft','ArrowRight'].includes(e.key))joy.x=0;
+ if(e.code==='Space')fire=false;
+});
+c.addEventListener('pointermove',e=>{
+ if(e.pointerType==='mouse'){aim.x=e.clientX-player.x;aim.y=e.clientY-player.y}
+});
+c.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse')fire=true});
+c.addEventListener('pointerup',e=>{if(e.pointerType==='mouse')fire=false});
+document.getElementById('restart').onclick=reset;
+
+function refreshWeapons(){
+ document.querySelectorAll('.weaponBtn').forEach(btn=>{
+   const id=btn.dataset.weapon, w=weapons[id];
+   btn.classList.toggle('selected',id===weapon);
+   document.getElementById('lvl-'+id).textContent=w.unlocked?`Lv.${w.level}`:'🔒';
+ });
+}
+function selectWeapon(id){
+ const w=weapons[id];
+ if(!w.unlocked){
+   const cost={smg:80,shotgun:120,rifle:180}[id];
+   if(coins<cost)return;
+   coins-=cost; w.unlocked=true;
+ }
+ weapon=id;
+ refreshWeapons();
+ updateHud();
+}
+// Shop
+const shop=document.getElementById('shop');
+document.getElementById('shopBtn').onclick=()=>{fire=false;refreshWeapons();shop.style.display='flex'};
+document.getElementById('closeShop').onclick=()=>shop.style.display='none';
+document.querySelectorAll('.weaponBtn').forEach(btn=>{
+ btn.onclick=()=>selectWeapon(btn.dataset.weapon);
+});
+document.getElementById('upgradeWeapon').onclick=()=>{
+ const w=weapons[weapon], cost=25+w.level*20;
+ const btn=document.getElementById('upgradeWeapon');
+ if(coins<cost){btn.textContent='❌ سکه کم';setTimeout(()=>btn.textContent=`🪙 ${cost}`,700);return}
+ coins-=cost; w.level++;
+ btn.textContent='✅ ارتقا یافت'; setTimeout(()=>btn.textContent=`🪙 ${25+w.level*20}`,700);
+ refreshWeapons(); updateHud();
+};
+document.querySelectorAll('.buy').forEach(btn=>{
+  btn.onclick=()=>{
+    const item=btn.dataset.item;
+    const costs={fire:20,damage:30,armor:40,speed:35};
+    const cost=costs[item];
+    if(coins<cost){btn.textContent='❌ سکه کم';setTimeout(()=>btn.textContent=`🪙 ${cost}`,700);return}
+    coins-=cost;
+    if(item==='fire'){fireRate=Math.max(.055,fireRate-.018);btn.textContent='✅ ارتقا یافت'}
+    if(item==='damage'){bulletDamage+=1;btn.textContent='✅ ارتقا یافت'}
+    if(item==='armor'){maxHp+=20;player.hp=maxHp;btn.textContent='✅ ارتقا یافت'}
+    if(item==='speed'){player.speed+=35;btn.textContent='✅ ارتقا یافت'}
+    document.getElementById('coins').textContent=coins;
+    setTimeout(()=>btn.textContent=`🪙 ${cost}`,700);
+  };
+});
+
+</script>
+</body>
+</html>
